@@ -1,1 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>IR Research Design Toolkit</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffffff">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f5f6fa;color:#1e293b;line-height:1.6}
+header{background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;padding:20px;text-align:center}
+header h1{font-size:1.5em}
+header p{font-size:.85em;opacity:.85;margin-top:4px}
+nav{display:flex;flex-wrap:wrap;gap:6px;padding:12px;background:#fff;border-bottom:1px solid #e2e8f0;justify-content:center;position:sticky;top:0;z-index:100}
+nav button{padding:7px 13px;border:1px solid #cbd5e1;border-radius:20px;background:#f8fafc;color:#334155;font-size:.78em;cursor:pointer;transition:.2s;white-space:nowrap}
+nav button:hover{background:#e0e7ff;border-color:#818cf8}
+nav button.active{background:#2563eb;color:#fff;border-color:#2563eb}
+.tab{display:none;padding:16px;max-width:900px;margin:0 auto}
+.tab.show{display:block}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin-bottom:14px;cursor:pointer;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card:hover{box-shadow:0 4px 12px rgba(0,0,0,.1);border-color:#93c5fd}
+.card h3{font-size:1.05em;color:#1e3a5f;display:flex;justify-content:space-between;align-items:center}
+.card h3::after{content:'\25B8';transition:.2s;font-size:.9em;color:#94a3b8}
+.card.open h3::after{transform:rotate(90deg);color:#2563eb}
+.card-body{display:none;margin-top:12px;padding-top:12px;border-top:1px solid #f1f5f9;font-size:.92em;color:#475569}
+.card.open .card-body{display:block}
+.tag{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.75em;font-weight:600;margin:2px}
+.tag-pos{background:#dbeafe;color:#1e40af}
+.tag-int{background:#fef3c7;color:#92400e}
+.tag-crit{background:#fce7f3;color:#9d174d}
+.tag-method{background:#d1fae5;color:#065f46}
+.tag-mixed{background:#e0e7ff;color:#3730a3}
+.stitle{font-size:1.15em;font-weight:700;color:#1e3a5f;margin:18px 0 10px;padding-bottom:6px;border-bottom:2px solid #2563eb}
+.matrix{width:100%;border-collapse:collapse;font-size:.85em;margin:12px 0}
+.matrix th,.matrix td{padding:10px;border:1px solid #e2e8f0;text-align:left}
+.matrix th{background:#f0f4ff;color:#1e3a5f;font-weight:600}
+.matrix tr:nth-child(even){background:#f8fafc}
+.ibox{background:#eff6ff;border-left:4px solid #2563eb;padding:14px;border-radius:0 8px 8px 0;margin:12px 0;font-size:.9em;color:#1e40af}
+.wbox{background:#fef3c7;border-left:4px solid #f59e0b;padding:14px;border-radius:0 8px 8px 0;margin:12px 0;font-size:.9em;color:#92400e}
+.ref{font-size:.82em;color:#64748b;font-style:italic;margin-top:6px}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-weight:600;color:#1e3a5f;margin-bottom:4px;font-size:.9em}
+.fg input,.fg textarea,.fg select{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-size:.9em;font-family:inherit;background:#fff}
+.fg textarea{min-height:70px;resize:vertical}
+.btn{padding:10px 22px;border:none;border-radius:8px;font-size:.9em;cursor:pointer;font-weight:600;transition:.2s;margin:4px}
+.btn-p{background:#2563eb;color:#fff}.btn-p:hover{background:#1d4ed8}
+.btn-s{background:#e2e8f0;color:#334155}.btn-s:hover{background:#cbd5e1}
+.btn-g{background:#059669;color:#fff}.btn-g:hover{background:#047857}
+.obox{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin-top:14px;white-space:pre-wrap;font-size:.88em;line-height:1.7;color:#334155;display:none}
+.obox.show{display:block}
+.exmp{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px;margin:8px 0;font-size:.88em}
+.cr{padding:14px;border-radius:8px;margin:10px 0;font-size:.9em}
+.cr-pass{background:#d1fae5;border:1px solid #6ee7b7;color:#065f46}
+.cr-warn{background:#fef3c7;border:1px solid #fcd34d;color:#92400e}
+.cr-fail{background:#fee2e2;border:1px solid #fca5a5;color:#991b1b}
+.srch{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-size:.9em;margin-bottom:14px}
+.rcard{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:10px}
+.rcard h4{color:#1e3a5f;font-size:.95em;margin-bottom:4px}
+.rcard p{font-size:.84em;color:#475569;margin-bottom:4px}
+.tsel{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+.tbtn{padding:10px 18px;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;font-weight:600;font-size:.88em;transition:.2s;background:#fff}
+.tbtn:hover{border-color:#2563eb}
+.tbtn.sel{border-color:#2563eb;background:#eff6ff;color:#2563eb}
+@media(max-width:600px){nav{gap:4px;padding:8px}nav button{font-size:.72em;padding:6px 10px}}
+</style>
+</head>
+<body>
+
+<header>
+<h1>IR Research Design Toolkit</h1>
+<p>An Interactive Guide for Graduate Students in International Relations</p>
+</header>
+
+<nav id="topnav"></nav>
+<div id="app"></div>
+
+<script>
+/* ===== SAFE DATA - no HTML tags inside strings ===== */
+
+var TABS = [
+  {id:"epistemology", label:"Epistemological Compass"},
+  {id:"alignment",    label:"Theory-Method Alignment"},
+  {id:"cases",        label:"Case Selection"},
+  {id:"nsize",        label:"N-Size Guide"},
+  {id:"methods",      label:"Methods Library"},
+  {id:"builder",      label:"Research Design Builder"},
+  {id:"checker",      label:"Alignment Checker"},
+  {id:"readings",     label:"Reading Navigator"}
+];
+
+var TRADITIONS = [
+  {
+    name: "Positivism",
+    tag: "tag-pos",
+    ontology: "An objective, observable social reality exists independently of the researcher. Patterns and regularities can be discovered.",
+    epistemology: "Knowledge is gained through empirical observation, measurement, and hypothesis testing. Causal inference is the goal.",
+    goal: "To explain, predict, and generalise. Seeks law-like regularities and causal mechanisms.",
+    scholars: "King, Keohane and Verba (KKV); Waltz; Mearsheimer; Fearon; Lake; Bueno de Mesquita",
+    methods: "Statistical analysis, formal modelling, large-N studies, structured-focused comparison, process tracing (theory-testing variant)",
+    works: [
+      {title:"Designing Social Inquiry", author:"King, Keohane and Verba (1994)", note:"The foundational text linking qualitative and quantitative research through a unified logic of inference."},
+      {title:"Rationalist Explanations for War", author:"Fearon (1995)", note:"Formal-theoretic analysis of bargaining failures. Demonstrates how rational choice models generate testable hypotheses."},
+      {title:"The Tragedy of Great Power Politics", author:"Mearsheimer (2001)", note:"Offensive realism derived deductively with historical case testing."},
+      {title:"Grasping the Democratic Peace", author:"Russett (1993)", note:"Statistical analysis of the democratic peace proposition. Canonical large-N IR study."}
+    ]
+  },
+  {
+    name: "Interpretivism",
+    tag: "tag-int",
+    ontology: "Social reality is constructed through meaning, language, and intersubjective understanding. There is no single objective reality in politics.",
+    epistemology: "Knowledge is gained through understanding (Verstehen), interpretation of meaning, and contextual analysis. The researcher is embedded in the inquiry.",
+    goal: "To understand, interpret, and reconstruct the meanings that actors bring to their social and political worlds.",
+    scholars: "Wendt; Kratochwil; Onuf; Pouliot; Adler; Fierke; Hopf; Schwartz-Shea and Yanow",
+    methods: "Discourse analysis, ethnography, narrative analysis, practice theory, interpretive process tracing, participant observation",
+    works: [
+      {title:"Anarchy is What States Make of It", author:"Wendt (1992)", note:"Foundational constructivist argument that the international system depends on shared ideas, not material distribution alone."},
+      {title:"International Practices", author:"Adler and Pouliot, eds. (2011)", note:"Practice-turn in IR showing how diplomacy and deterrence are constituted through habitual social practices."},
+      {title:"Interpretation and Method", author:"Schwartz-Shea and Yanow (2012)", note:"Comprehensive guide to interpretive research design. Essential for qualitative IR scholars working outside the KKV paradigm."},
+      {title:"Peaceland", author:"Autesserre (2014)", note:"Ethnographic study of international peacebuilding practitioners revealing how everyday practices undermine peacebuilding goals."}
+    ]
+  },
+  {
+    name: "Critical Theory",
+    tag: "tag-crit",
+    ontology: "Social reality is shaped by power, ideology, and historical structures of domination. What appears natural is often socially constructed to serve particular interests.",
+    epistemology: "Knowledge is never neutral - it is always produced within power structures. The purpose of inquiry is emancipation and the exposure of hidden power relations.",
+    goal: "To critique, unmask, and transform. Research should reveal how existing arrangements serve dominant interests and imagine alternatives.",
+    scholars: "Cox; Linklater; Booth; Enloe; Tickner; Acharya; Hobson; Said; Spivak; Ackerly and True",
+    methods: "Critical discourse analysis, genealogy, postcolonial analysis, feminist methodology, historical-structural analysis, reflexive ethnography",
+    works: [
+      {title:"Social Forces, States and World Orders", author:"Cox (1981)", note:"Theory is always for someone and for some purpose. The defining statement of critical IR theory."},
+      {title:"Bananas, Beaches and Bases", author:"Enloe (1990)", note:"Feminist IR classic showing how gender structures international politics in ways mainstream theories ignore."},
+      {title:"The Eurocentrism of IR", author:"Hobson (2012)", note:"Systematic critique of how IR theory has been built on Eurocentric assumptions."},
+      {title:"Doing Feminist Research in Political and Social Science", author:"Ackerly and True (2010)", note:"Practical guide to feminist research ethics and methodology."}
+    ]
+  }
+];
+
+var CASE_TYPES = [
+  {name:"Most Similar Systems Design (MSSD)", aka:"Mill's Method of Difference",
+   logic:"Select cases that are as similar as possible on all variables except the outcome and the hypothesised cause.",
+   example:"Skocpol's States and Social Revolutions (1979) compares France, Russia, and China to isolate causes of revolution.",
+   when:"When you want to control for confounding variables by holding context constant.",
+   ref:"Przeworski and Teune (1970); Lijphart (1971)"},
+  {name:"Most Different Systems Design (MDSD)", aka:"Mill's Method of Agreement",
+   logic:"Select cases that differ on as many variables as possible but share the same outcome.",
+   example:"Collier and Collier's Shaping the Political Arena (1991) examines eight very different Latin American countries with similar critical junctures.",
+   when:"When you want to show a finding is robust across diverse contexts.",
+   ref:"Przeworski and Teune (1970); Anckar (2008)"},
+  {name:"Crucial Case", aka:"Least-Likely / Most-Likely",
+   logic:"A most-likely case is where conditions are most favourable for a theory; if it fails there, the theory is seriously weakened. A least-likely case is the opposite.",
+   example:"Eckstein (1975) proposed the logic. George and Bennett (2005) refine it. Pape (2005) on suicide terrorism as a least-likely case for strategic rationality.",
+   when:"When you want to strongly test a theory with a single or small number of cases.",
+   ref:"Eckstein (1975); Levy (2008); George and Bennett (2005)"},
+  {name:"Deviant Case", aka:"Anomalous / Outlier Case",
+   logic:"Select a case that deviates from the prediction of an established theory to reveal scope conditions.",
+   example:"Katzenstein's The Culture of National Security (1996) examines cases where realist predictions fail, revealing the role of identity.",
+   when:"When an existing theory cannot explain an important case.",
+   ref:"Gerring (2007); Seawright and Gerring (2008)"},
+  {name:"Pathway Case", aka:"Causal Mechanism Case",
+   logic:"Select cases specifically to trace the causal mechanisms linking a cause to an outcome.",
+   example:"Tannenwald's The Nuclear Taboo (2007) traces the causal mechanisms by which a norm against nuclear use emerged.",
+   when:"When the causal relationship is established but the mechanism is unclear.",
+   ref:"George and Bennett (2005); Beach and Pedersen (2013)"},
+  {name:"Typological Case Selection", aka:"Typological Theory",
+   logic:"Develop a typology of theoretically relevant case types and select cases from each cell.",
+   example:"Elman's typological theory of democratic peace examines different combinations of regime type, threat level, and alliance structure.",
+   when:"When multiple causal paths exist and you want to map the full landscape.",
+   ref:"George and Bennett (2005), Ch. 11; Elman (2005)"}
+];
+
+var NSIZE = [
+  {type:"Large-N (Quantitative)", n:"Typically 30+ cases, often hundreds or thousands",
+   strengths:"Generalisability, statistical control for confounders, identification of broad patterns, replicability.",
+   limits:"Risks conceptual stretching; may miss context; causal mechanisms remain a black box.",
+   methods:"Regression analysis, time-series, panel data, event data, survival analysis, formal modelling.",
+   refs:"King, Keohane and Verba (1994); Russett (1993); Oneal and Russett (1999)",
+   example:"Russett's Grasping the Democratic Peace (1993) uses statistical analysis of all dyads to test whether democracies fight each other less."},
+  {type:"Small-N Comparative (2-10 cases)", n:"Typically 2-10 cases",
+   strengths:"Combines breadth with depth; structured comparison allows controlled analysis.",
+   limits:"Cannot fully control for all confounders; case selection is critical; less generalisable.",
+   methods:"Structured-focused comparison, QCA, comparative process tracing, MSSD/MDSD.",
+   refs:"George and Bennett (2005); Ragin (1987/2008); Slater and Ziblatt (2013)",
+   example:"George and Smoke's Deterrence in American Foreign Policy (1974) uses structured-focused comparison of multiple deterrence cases."},
+  {type:"Single Case Study (N=1)", n:"One case, studied intensively",
+   strengths:"Maximum depth; rich causal-mechanism tracing; can uncover processes invisible to large-N.",
+   limits:"Cannot generalise statistically; external validity depends on case selection rationale.",
+   methods:"Process tracing, congruence testing, counterfactual analysis, archival research, elite interviews.",
+   refs:"Van Evera (1997); Bennett and Checkel (2015); Beach and Pedersen (2013); Gerring (2007)",
+   example:"Allison's Essence of Decision (1971) applies three theoretical lenses to the Cuban Missile Crisis."},
+  {type:"Mixed Methods", n:"Combines large-N and small-N/single-case",
+   strengths:"Triangulation; large-N identifies patterns, case studies trace mechanisms.",
+   limits:"Requires competence in multiple methods; more resource-intensive.",
+   methods:"Nested analysis, sequential designs, multi-method research.",
+   refs:"Lieberman (2005); Seawright (2016); Goertz and Mahoney (2012)",
+   example:"Lieberman's nested analysis framework: run a regression, identify interesting cases from the residuals, then process-trace those cases."}
+];
+
+var METHODS_LIB = [
+  {name:"Process Tracing", tradition:"Positivist / Interpretivist",
+   desc:"A within-case method that examines the causal chain linking a cause to an outcome by looking for observable manifestations of each link.",
+   when:"When you need to establish how and why a causal relationship works.",
+   variants:"Theory-testing, theory-building, explaining-outcome (Beach and Pedersen 2013).",
+   exemplar:"Tannenwald, The Nuclear Taboo (2007) - traces the causal mechanism by which a normative prohibition against nuclear weapons use developed.",
+   readings:"Bennett and Checkel, eds. (2015); Beach and Pedersen (2013); George and Bennett (2005), Ch. 10; Van Evera (1997), Ch. 2.",
+   tags:["tag-pos","tag-int"]},
+  {name:"Discourse Analysis", tradition:"Interpretivist / Critical",
+   desc:"Examines how language, texts, and communication construct social realities, identities, and power relations.",
+   when:"When your research question concerns how meaning is produced or how power operates through language.",
+   variants:"Foucauldian, critical discourse analysis (Fairclough), poststructuralist discourse theory (Laclau and Mouffe), narrative analysis.",
+   exemplar:"Hansen, Security as Practice (2006) - develops a methodology for poststructuralist security analysis through discourse.",
+   readings:"Milliken (1999) in EJIR; Hansen (2006); Fairclough (2003) Analysing Discourse.",
+   tags:["tag-int","tag-crit"]},
+  {name:"Qualitative Comparative Analysis (QCA)", tradition:"Positivist / Mixed",
+   desc:"A set-theoretic method using Boolean algebra to identify which combinations of conditions are necessary or sufficient for an outcome.",
+   when:"When you have medium-N (10-50 cases), expect equifinality, and want to identify necessary/sufficient conditions.",
+   variants:"Crisp-set QCA, fuzzy-set QCA, multi-value QCA.",
+   exemplar:"Ragin, Fuzzy-Set Social Science (2000) - introduces fsQCA methodology, widely applied in comparative politics and IR.",
+   readings:"Ragin (2008) Redesigning Social Inquiry; Schneider and Wagemann (2012) Set-Theoretic Methods.",
+   tags:["tag-pos","tag-mixed"]},
+  {name:"Statistical Analysis", tradition:"Positivist",
+   desc:"Uses mathematical models to identify patterns, correlations, and causal effects across many observations.",
+   when:"When you want to test hypotheses across a broad population of cases and establish generalisable findings.",
+   variants:"OLS regression, logistic regression, panel data, time-series cross-section, instrumental variables, survival models.",
+   exemplar:"Russett and Oneal, Triangulating Peace (2001) - statistical analysis of the Kantian peace thesis.",
+   readings:"King, Keohane and Verba (1994); Kellstedt and Whitten (2018) The Fundamentals of Political Science Research.",
+   tags:["tag-pos"]},
+  {name:"Ethnography and Participant Observation", tradition:"Interpretivist / Critical",
+   desc:"Extended immersion in a social setting to understand practices, meanings, and power relations from the inside.",
+   when:"When your question concerns how practices are lived or how institutions actually function on the ground.",
+   variants:"Political ethnography, institutional ethnography, auto-ethnography, micro-sociology of international practice.",
+   exemplar:"Autesserre, Peaceland (2014) - ethnographic study of peacebuilding practitioners in the DRC and Timor-Leste.",
+   readings:"Schatz, ed. (2009) Political Ethnography; Wedeen (2010) in Annual Review of Political Science; Pouliot (2010).",
+   tags:["tag-int","tag-crit"]},
+  {name:"Content Analysis", tradition:"Positivist / Interpretivist",
+   desc:"Systematic coding and analysis of texts, speeches, media, or other communicative material.",
+   when:"When you need to analyse large volumes of textual data systematically or map how a concept is framed.",
+   variants:"Quantitative content analysis, qualitative content analysis (Mayring), automated text analysis, frame analysis.",
+   exemplar:"Entman, Framing Terrorism (2004) - systematic analysis of how US media framed terrorism events.",
+   readings:"Krippendorff (2018) Content Analysis; Neuendorf (2017); Schreier (2012).",
+   tags:["tag-pos","tag-int"]},
+  {name:"Comparative Historical Analysis", tradition:"All Traditions",
+   desc:"Examines historical sequences, critical junctures, and long-term processes across cases to explain macro-level political outcomes.",
+   when:"When your question concerns large-scale, long-term political outcomes and the historical processes that produced them.",
+   variants:"Path dependence analysis, critical juncture analysis, periodic comparison, historical institutionalism.",
+   exemplar:"Skocpol, States and Social Revolutions (1979) - compares France, Russia, and China. The paradigmatic work.",
+   readings:"Mahoney and Rueschemeyer, eds. (2003); Mahoney and Thelen (2010); Pierson (2004) Politics in Time.",
+   tags:["tag-pos","tag-int","tag-crit"]}
+];
+
+var READINGS = [
+  {title:"Designing Social Inquiry", author:"King, Keohane and Verba", year:1994, type:"Methods", tradition:"Positivist",
+   desc:"Foundational text on causal inference in qualitative research. Argues for a unified logic of inference across methods."},
+  {title:"Writing a Research Paper in Political Science", author:"Baglione, Lisa", year:2020, type:"Methods", tradition:"General",
+   desc:"Practical step-by-step guide to research design, argument construction, and writing for MA and early-PhD students."},
+  {title:"Case Studies and Theory Development", author:"George and Bennett", year:2005, type:"Methods", tradition:"General",
+   desc:"The key text on case study methods in IR. Covers process tracing, typological theory, and case selection."},
+  {title:"Guide to Methods for Students of Political Science", author:"Van Evera, Stephen", year:1997, type:"Methods", tradition:"Positivist",
+   desc:"Concise, practical guide to hypothesis testing, case selection, and process tracing."},
+  {title:"Redesigning Social Inquiry", author:"Ragin, Charles", year:2008, type:"Methods", tradition:"Mixed",
+   desc:"Introduces set-theoretic thinking and QCA as alternatives to variable-oriented quantitative analysis."},
+  {title:"Interpretation and Method", author:"Schwartz-Shea and Yanow", year:2012, type:"Methods", tradition:"Interpretivist",
+   desc:"Comprehensive guide to interpretive research design showing how interpretive logic differs from the KKV paradigm."},
+  {title:"Process Tracing: From Metaphor to Analytic Tool", author:"Bennett and Checkel, eds.", year:2015, type:"Methods", tradition:"General",
+   desc:"State-of-the-art volume on process tracing methods with chapters on Bayesian reasoning and evidence evaluation."},
+  {title:"Process-Tracing Methods", author:"Beach and Pedersen", year:2013, type:"Methods", tradition:"General",
+   desc:"Distinguishes three variants of process tracing. Practical guidance on mechanism identification."},
+  {title:"Doing Feminist Research", author:"Ackerly and True", year:2010, type:"Methods", tradition:"Critical",
+   desc:"Shows how feminist commitments shape every stage of research design."},
+  {title:"Social Forces, States and World Orders", author:"Cox, Robert", year:1981, type:"Exemplar", tradition:"Critical",
+   desc:"Theory is always for someone and for some purpose. Foundational statement of critical IR theory."},
+  {title:"Anarchy is What States Make of It", author:"Wendt, Alexander", year:1992, type:"Exemplar", tradition:"Interpretivist",
+   desc:"The article that launched constructivism in IR."},
+  {title:"Essence of Decision", author:"Allison, Graham", year:1971, type:"Exemplar", tradition:"General",
+   desc:"Three-lens analysis of the Cuban Missile Crisis. The single most influential case study in IR."},
+  {title:"States and Social Revolutions", author:"Skocpol, Theda", year:1979, type:"Exemplar", tradition:"Positivist",
+   desc:"Structured comparison of revolutions in France, Russia, and China."},
+  {title:"The Nuclear Taboo", author:"Tannenwald, Nina", year:2007, type:"Exemplar", tradition:"Interpretivist",
+   desc:"Traces the emergence and power of the norm against nuclear weapons use. Exemplary process tracing."},
+  {title:"Bananas, Beaches and Bases", author:"Enloe, Cynthia", year:1990, type:"Exemplar", tradition:"Critical",
+   desc:"Shows how gender structures international politics. Foundational feminist IR text."},
+  {title:"Peaceland", author:"Autesserre, Severine", year:2014, type:"Exemplar", tradition:"Interpretivist",
+   desc:"Ethnographic study of peacebuilding practice."},
+  {title:"Grasping the Democratic Peace", author:"Russett, Bruce", year:1993, type:"Exemplar", tradition:"Positivist",
+   desc:"Statistical analysis of the democratic peace proposition. Canonical large-N IR study."},
+  {title:"Fuzzy-Set Social Science", author:"Ragin, Charles", year:2000, type:"Exemplar", tradition:"Mixed",
+   desc:"Introduces fuzzy-set QCA."},
+  {title:"Political Ethnography", author:"Schatz, Edward, ed.", year:2009, type:"Methods", tradition:"Interpretivist",
+   desc:"Foundational edited volume making the case for ethnographic approaches in political science."},
+  {title:"Nested Analysis", author:"Lieberman, Evan", year:2005, type:"Methods", tradition:"Mixed",
+   desc:"Framework for integrating large-N analysis with case studies."},
+  {title:"Security as Practice", author:"Hansen, Lene", year:2006, type:"Methods", tradition:"Interpretivist",
+   desc:"Develops a methodology for poststructuralist security analysis through discourse."},
+  {title:"The Eurocentrism of IR Theory", author:"Hobson, John M.", year:2012, type:"Exemplar", tradition:"Critical",
+   desc:"Systematic deconstruction of Eurocentric assumptions in the IR canon."},
+  {title:"The Fundamentals of Political Science Research", author:"Kellstedt and Whitten", year:2018, type:"Methods", tradition:"Positivist",
+   desc:"Accessible introduction to quantitative methods for political science."}
+];
+
+/* ===== APP ENGINE ===== */
+
+var currentTab = "epistemology";
+var currentTradFilter = "all";
+
+function el(id) { return document.getElementById(id); }
+
+function showTab(id) {
+  currentTab = id;
+  var tabs = document.querySelectorAll(".tab");
+  for (var i = 0; i < tabs.length; i++) { tabs[i].className = "tab"; }
+  var btns = document.querySelectorAll("nav button");
+  for (var i = 0; i < btns.length; i++) { btns[i].className = ""; }
+  var t = el("tab-" + id);
+  if (t) { t.className = "tab show"; }
+  var b = el("btn-" + id);
+  if (b) { b.className = "active"; }
+  if (id === "readings") { renderReadings(); }
+}
+
+function toggleCard(elem) {
+  if (elem.classList.contains("open")) {
+    elem.classList.remove("open");
+  } else {
+    elem.classList.add("open");
+  }
+}
+
+function buildNav() {
+  var nav = el("topnav");
+  var html = "";
+  for (var i = 0; i < TABS.length; i++) {
+    html += '<button id="btn-' + TABS[i].id + '" onclick="showTab(\'' + TABS[i].id + '\')">' + TABS[i].label + '</button>';
+  }
+  nav.innerHTML = html;
+}
+
+function buildApp() {
+  var app = el("app");
+  var html = "";
+  for (var i = 0; i < TABS.length; i++) {
+    html += '<div class="tab" id="tab-' + TABS[i].id + '">';
+    html += getTabContent(TABS[i].id);
+    html += '</div>';
+  }
+  app.innerHTML = html;
+  buildNav();
+  showTab("epistemology");
+}
+
+function getTabContent(id) {
+  if (id === "epistemology") return tabEpistemology();
+  if (id === "alignment") return tabAlignment();
+  if (id === "cases") return tabCases();
+  if (id === "nsize") return tabNsize();
+  if (id === "methods") return tabMethods();
+  if (id === "builder") return tabBuilder();
+  if (id === "checker") return tabChecker();
+  if (id === "readings") return tabReadings();
+  return "";
+}
+
+/* ----- TAB 1: EPISTEMOLOGY ----- */
+function tabEpistemology() {
+  var h = '<div class="stitle">The Three Traditions in IR Research</div>';
+  h += '<div class="ibox">Every research design rests on epistemological foundations. Before choosing methods, understand where you stand. As Robert Cox (1981) wrote: "Theory is always for someone and for some purpose."</div>';
+  for (var i = 0; i < TRADITIONS.length; i++) {
+    var t = TRADITIONS[i];
+    h += '<div class="card" onclick="toggleCard(this)">';
+    h += '<h3><span class="tag ' + t.tag + '">' + t.name + '</span></h3>';
+    h += '<div class="card-body">';
+    h += '<p><b>Ontology:</b> ' + t.ontology + '</p>';
+    h += '<p style="margin-top:8px"><b>Epistemology:</b> ' + t.epistemology + '</p>';
+    h += '<p style="margin-top:8px"><b>Goal of Research:</b> ' + t.goal + '</p>';
+    h += '<p style="margin-top:8px"><b>Key Scholars:</b> ' + t.scholars + '</p>';
+    h += '<p style="margin-top:8px"><b>Typical Methods:</b> ' + t.methods + '</p>';
+    h += '<div class="stitle" style="font-size:.95em;margin-top:14px">Canonical Works</div>';
+    for (var j = 0; j < t.works.length; j++) {
+      var w = t.works[j];
+      h += '<div class="exmp"><b>' + w.title + '</b> - ' + w.author + '<br>' + w.note + '</div>';
+    }
+    h += '</div></div>';
+  }
+  h += '<div class="wbox"><b>Important:</b> These categories are ideal types, not rigid boxes. Many scholars work across traditions. Your job is to be explicit about your choices and their implications.</div>';
+  h += '<div class="ref">Key overview: Kurki and Wight (2013) in Dunne, Kurki and Smith, eds., International Relations Theories.</div>';
+  return h;
+}
+
+/* ----- TAB 2: ALIGNMENT ----- */
+function tabAlignment() {
+  var h = '<div class="stitle">Aligning Theory, Epistemology, and Method</div>';
+  h += '<div class="ibox">Coherent research design requires alignment between your theoretical framework, epistemological commitments, and methodological choices. A mismatch undermines the entire project.</div>';
+  h += '<p style="margin:12px 0;font-size:.92em">Select a tradition to see its alignment pathway:</p>';
+  h += '<div class="tsel">';
+  h += '<div class="tbtn" onclick="showTradPath(0,this)"><span class="tag tag-pos">Positivist</span></div>';
+  h += '<div class="tbtn" onclick="showTradPath(1,this)"><span class="tag tag-int">Interpretivist</span></div>';
+  h += '<div class="tbtn" onclick="showTradPath(2,this)"><span class="tag tag-crit">Critical</span></div>';
+  h += '</div>';
+  h += '<div id="tradDetail"></div>';
+  h += '<div class="stitle" style="margin-top:20px">Quick-Reference Alignment Matrix</div>';
+  h += '<div style="overflow-x:auto"><table class="matrix">';
+  h += '<tr><th>If your question asks...</th><th>Tradition</th><th>Theory might be...</th><th>Method might be...</th><th>Exemplar</th></tr>';
+  h += '<tr><td>Does X cause Y? Under what conditions?</td><td><span class="tag tag-pos">Positivist</span></td><td>Realism, liberalism, rational choice</td><td>Statistical analysis, formal models, structured comparison</td><td>KKV (1994); Fearon (1995)</td></tr>';
+  h += '<tr><td>How do actors understand X? What meanings constitute Y?</td><td><span class="tag tag-int">Interpretivist</span></td><td>Constructivism, English School, practice theory</td><td>Discourse analysis, ethnography, interpretive process tracing</td><td>Wendt (1992); Pouliot (2010)</td></tr>';
+  h += '<tr><td>Whose interests does X serve? How does Y reproduce domination?</td><td><span class="tag tag-crit">Critical</span></td><td>Marxism, feminism, postcolonialism</td><td>Critical discourse analysis, genealogy, feminist methodology</td><td>Cox (1981); Enloe (1990)</td></tr>';
+  h += '<tr><td>Is X necessary/sufficient for Y? What combinations produce Y?</td><td><span class="tag tag-mixed">Mixed</span></td><td>Configurational, equifinality-aware</td><td>QCA, nested analysis, multi-method</td><td>Ragin (2008); Lieberman (2005)</td></tr>';
+  h += '</table></div>';
+  h += '<div class="ref">See also: Baglione (2020), Ch. 3-4; Marsh and Stoker (2010), Ch. 1.</div>';
+  return h;
+}
+
+var TRAD_PATHS = [
+  "POSITIVIST PATHWAY: Start with an observable puzzle. Derive a testable hypothesis from theory (deductive). Choose a method that allows causal inference (statistical analysis, structured comparison, process tracing). Select cases based on variation in key variables (MSSD, crucial case). Evaluate using empirical evidence and counterfactuals. THE KKV STANDARD: Maximise observable implications of your hypothesis. Avoid selection on the dependent variable. Seek leverage through controlled comparison. Report uncertainty honestly. Key texts: King, Keohane and Verba (1994); Van Evera (1997); Kellstedt and Whitten (2018).",
+  "INTERPRETIVIST PATHWAY: Start with a puzzling social practice, contested meaning, or identity formation. Approach with openness to how actors construct their world (abductive/inductive). Choose a method that uncovers meaning (discourse analysis, ethnography, interpretive process tracing). Select cases based on richness of meaning-making, not statistical representativeness. Evaluate through trustworthiness, reflexivity, thick description, and inter-subjective plausibility. BEYOND KKV: Schwartz-Shea and Yanow (2012) argue that interpretive research has its own standards of rigour - not less rigorous than positivism, but differently rigorous. Key texts: Schwartz-Shea and Yanow (2012); Pouliot (2010); Wedeen (2002).",
+  "CRITICAL PATHWAY: Start with a situation of injustice, domination, or silencing. Ask who benefits from the current arrangement and whose voices are excluded. Choose a method that reveals power structures (critical discourse analysis, genealogy, feminist methodology). Engage reflexively - acknowledge your own positionality and normative commitments. Aim not just for description or explanation, but transformation and emancipation. COX'S DICTUM: All theory serves someone's interests. Critical research makes this explicit and asks whose interests are served by existing knowledge structures. Key texts: Cox (1981); Ackerly and True (2010); Enloe (1990); Hobson (2012)."
+];
+
+function showTradPath(index, elem) {
+  var btns = document.querySelectorAll(".tbtn");
+  for (var i = 0; i < btns.length; i++) { btns[i].classList.remove("sel"); }
+  elem.classList.add("sel");
+  el("tradDetail").innerHTML = '<div class="ibox" style="margin-top:12px">' + TRAD_PATHS[index] + '</div>';
+}
+
+/* ----- TAB 3: CASES ----- */
+function tabCases() {
+  var h = '<div class="stitle">Case Selection Strategies</div>';
+  h += '<div class="ibox">Case selection is one of the most consequential decisions in your research design. The logic of your case selection must match your research goal. As George and Bennett (2005) emphasise, a poorly selected case can invalidate an otherwise strong analysis.</div>';
+  for (var i = 0; i < CASE_TYPES.length; i++) {
+    var c = CASE_TYPES[i];
+    h += '<div class="card" onclick="toggleCard(this)"><h3>' + c.name + '</h3><div class="card-body">';
+    h += '<p><b>Also known as:</b> ' + c.aka + '</p>';
+    h += '<p style="margin-top:8px"><b>Logic:</b> ' + c.logic + '</p>';
+    h += '<p style="margin-top:8px"><b>IR Example:</b> ' + c.example + '</p>';
+    h += '<p style="margin-top:8px"><b>When to Use:</b> ' + c.when + '</p>';
+    h += '<div class="ref">' + c.ref + '</div>';
+    h += '</div></div>';
+  }
+  h += '<div class="stitle">Case Selection Decision Guide</div>';
+  h += '<div class="ibox">';
+  h += '1. Is your goal to TEST an existing theory? Consider a crucial case (most-likely or least-likely) or MSSD.<br><br>';
+  h += '2. Is your goal to BUILD new theory? Consider a deviant case, an exploratory case, or MDSD.<br><br>';
+  h += '3. Is your goal to trace CAUSAL MECHANISMS? Consider a pathway case with process tracing.<br><br>';
+  h += '4. Do you want to show an outcome is ROBUST ACROSS CONTEXTS? Consider MDSD or typological selection.<br><br>';
+  h += '5. Are you working with MEDIUM-N (10-50)? Consider QCA-driven case selection.';
+  h += '</div>';
+  h += '<div class="ref">Essential reading: Seawright and Gerring (2008) in Political Research Quarterly; Gerring (2007) Case Study Research.</div>';
+  return h;
+}
+
+/* ----- TAB 4: N-SIZE ----- */
+function tabNsize() {
+  var h = '<div class="stitle">The N-Size Decision: How Many Cases?</div>';
+  h += '<div class="ibox">The number of cases you study fundamentally shapes what kinds of claims you can make. King, Keohane and Verba (1994) argue that the logic of inference is the same regardless of N - but many scholars disagree. Choose N based on your research question and epistemology, not convention.</div>';
+  for (var i = 0; i < NSIZE.length; i++) {
+    var n = NSIZE[i];
+    h += '<div class="card" onclick="toggleCard(this)"><h3>' + n.type + '</h3><div class="card-body">';
+    h += '<p><b>Typical N:</b> ' + n.n + '</p>';
+    h += '<p style="margin-top:8px"><b>Strengths:</b> ' + n.strengths + '</p>';
+    h += '<p style="margin-top:8px"><b>Limitations:</b> ' + n.limits + '</p>';
+    h += '<p style="margin-top:8px"><b>Methods:</b> ' + n.methods + '</p>';
+    h += '<p style="margin-top:8px"><b>Key References:</b> ' + n.refs + '</p>';
+    h += '<div class="exmp"><b>IR Example:</b> ' + n.example + '</div>';
+    h += '</div></div>';
+  }
+  h += '<div class="stitle">The KKV Debate</div>';
+  h += '<div class="ibox">King, Keohane and Verba (1994) argued that qualitative research should aspire to the same inferential logic as quantitative research. This sparked an enormous debate. Critics (Brady and Collier 2004; Ragin 2008; Schwartz-Shea and Yanow 2012) argued that KKV misunderstands the distinct logics of qualitative, interpretive, and set-theoretic inquiry. Your task is not to pick a side but to understand the stakes for your own design choices.</div>';
+  h += '<div class="ref">Brady and Collier, eds. (2004) Rethinking Social Inquiry; Goertz and Mahoney (2012) A Tale of Two Cultures.</div>';
+  return h;
+}
+
+/* ----- TAB 5: METHODS ----- */
+function tabMethods() {
+  var h = '<div class="stitle">Methods for IR Research</div>';
+  h += '<div class="ibox">Methods are the tools of inquiry - but they are not neutral. Each method carries epistemological assumptions and is suited to particular kinds of questions.</div>';
+  for (var i = 0; i < METHODS_LIB.length; i++) {
+    var m = METHODS_LIB[i];
+    h += '<div class="card" onclick="toggleCard(this)"><h3>' + m.name + ' <span style="font-size:.75em;font-weight:400;color:#64748b">' + m.tradition + '</span></h3><div class="card-body">';
+    h += '<p>' + m.desc + '</p>';
+    h += '<p style="margin-top:8px"><b>When to use:</b> ' + m.when + '</p>';
+    h += '<p style="margin-top:8px"><b>Variants:</b> ' + m.variants + '</p>';
+    h += '<div class="exmp" style="margin-top:10px"><b>Exemplary IR Study:</b> ' + m.exemplar + '</div>';
+    h += '<p style="margin-top:8px"><b>Key Readings:</b> ' + m.readings + '</p>';
+    h += '<div style="margin-top:6px">';
+    for (var j = 0; j < m.tags.length; j++) {
+      var tname = m.tags[j].replace("tag-","").replace("pos","Positivist").replace("int","Interpretivist").replace("crit","Critical").replace("mixed","Mixed");
+      h += '<span class="tag ' + m.tags[j] + '">' + tname + '</span> ';
+    }
+    h += '</div></div></div>';
+  }
+  return h;
+}
+
+/* ----- TAB 6: BUILDER ----- */
+function tabBuilder() {
+  var h = '<div class="stitle">Research Design Builder</div>';
+  h += '<div class="ibox">Use this form to draft your research design step by step, following the structure recommended by Baglione (2020) and George and Bennett (2005). When done, generate a formatted memo you can share with your supervisor.</div>';
+  var fields = [
+    {id:"bd-title", label:"1. Your Name / Project Title", type:"input", ph:"e.g., Jane Doe - NATO Enlargement and Alliance Cohesion"},
+    {id:"bd-puzzle", label:"2. Research Puzzle", type:"ta", ph:"What real-world phenomenon or theoretical tension motivates your research? (2-4 sentences)"},
+    {id:"bd-rq", label:"3. Research Question", type:"ta", ph:"State your research question clearly. It should be specific, answerable, and non-trivial."},
+    {id:"bd-epist", label:"4. Epistemological Tradition", type:"select", opts:["-- Select --","Positivist","Interpretivist","Critical","Mixed / Pragmatist"]},
+    {id:"bd-theory", label:"5. Theoretical Framework", type:"ta", ph:"Which IR theory informs your analysis? How does it help frame your question?"},
+    {id:"bd-hyp", label:"6. Hypothesis / Argument", type:"ta", ph:"If positivist: state your hypothesis. If interpretivist/critical: state your central argument."},
+    {id:"bd-method", label:"7. Method(s)", type:"ta", ph:"Which method(s) will you use? Why is this method suited to your question?"},
+    {id:"bd-cases", label:"8. Case Selection Strategy", type:"ta", ph:"How many cases? Which ones? What is your case selection logic?"},
+    {id:"bd-data", label:"9. Data / Sources", type:"ta", ph:"What evidence will you draw on?"},
+    {id:"bd-contrib", label:"10. Expected Contribution", type:"ta", ph:"How will your research advance the literature?"},
+    {id:"bd-refs", label:"11. Key References (3-5)", type:"ta", ph:"List the 3-5 most important works your design engages with."}
+  ];
+  for (var i = 0; i < fields.length; i++) {
+    var f = fields[i];
+    h += '<div class="fg"><label>' + f.label + '</label>';
+    if (f.type === "input") {
+      h += '<input type="text" id="' + f.id + '" placeholder="' + f.ph + '">';
+    } else if (f.type === "ta") {
+      h += '<textarea id="' + f.id + '" placeholder="' + f.ph + '"></textarea>';
+    } else if (f.type === "select") {
+      h += '<select id="' + f.id + '">';
+      for (var j = 0; j < f.opts.length; j++) {
+        h += '<option value="' + (j === 0 ? "" : f.opts[j]) + '">' + f.opts[j] + '</option>';
+      }
+      h += '</select>';
+    }
+    h += '</div>';
+  }
+  h += '<div style="margin-top:10px">';
+  h += '<button class="btn btn-p" onclick="generateDesign()">Generate Research Design Memo</button> ';
+  h += '<button class="btn btn-s" onclick="clearBuilder()">Clear All</button>';
+  h += '</div>';
+  h += '<div class="obox" id="bd-output"></div>';
+  h += '<div id="bd-copy" style="display:none"><button class="btn btn-g" onclick="copyText(\'bd-output\')">Copy to Clipboard</button></div>';
+  return h;
+}
+
+function generateDesign() {
+  var v = function(id) { var e = el(id); return e ? e.value.trim() : ""; };
+  var rq = v("bd-rq");
+  if (!rq) { alert("Please enter at least a research question."); return; }
+  var out = el("bd-output");
+  var lines = [];
+  lines.push("========================================");
+  lines.push("RESEARCH DESIGN MEMO");
+  lines.push("========================================");
+  lines.push("");
+  lines.push("Project: " + (v("bd-title") || "[Untitled]"));
+  lines.push("");
+  lines.push("1. RESEARCH PUZZLE");
+  lines.push(v("bd-puzzle") || "[Not specified]");
+  lines.push("");
+  lines.push("2. RESEARCH QUESTION");
+  lines.push(rq);
+  lines.push("");
+  lines.push("3. EPISTEMOLOGICAL TRADITION");
+  lines.push(v("bd-epist") || "[Not specified]");
+  lines.push("");
+  lines.push("4. THEORETICAL FRAMEWORK");
+  lines.push(v("bd-theory") || "[Not specified]");
+  lines.push("");
+  lines.push("5. HYPOTHESIS / ARGUMENT");
+  lines.push(v("bd-hyp") || "[Not specified]");
+  lines.push("");
+  lines.push("6. METHOD(S)");
+  lines.push(v("bd-method") || "[Not specified]");
+  lines.push("");
+  lines.push("7. CASE SELECTION");
+  lines.push(v("bd-cases") || "[Not specified]");
+  lines.push("");
+  lines.push("8. DATA / SOURCES");
+  lines.push(v("bd-data") || "[Not specified]");
+  lines.push("");
+  lines.push("9. EXPECTED CONTRIBUTION");
+  lines.push(v("bd-contrib") || "[Not specified]");
+  lines.push("");
+  lines.push("10. KEY REFERENCES");
+  lines.push(v("bd-refs") || "[Not specified]");
+  lines.push("");
+  lines.push("========================================");
+  lines.push("Generated by the IR Research Design Toolkit");
+
+  out.textContent = lines.join("\n");
+  out.className = "obox show";
+  el("bd-copy").style.display = "block";
+}
+
+function clearBuilder() {
+  var ids = ["bd-title","bd-puzzle","bd-rq","bd-epist","bd-theory","bd-hyp","bd-method","bd-cases","bd-data","bd-contrib","bd-refs"];
+  for (var i = 0; i < ids.length; i++) {
+    var e = el(ids[i]);
+    if (e) {
+      if (e.tagName === "SELECT") { e.selectedIndex = 0; }
+      else { e.value = ""; }
+    }
+  }
+  el("bd-output").className = "obox";
+  el("bd-copy").style.display = "none";
+}
+
+function copyText(id) {
+  var text = el(id).textContent || el(id).innerText;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function() { alert("Copied to clipboard!"); });
+  } else {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    alert("Copied!");
+  }
+}
+
+/* ----- TAB 7: CHECKER ----- */
+function tabChecker() {
+  var h = '<div class="stitle">Research Design Alignment Checker</div>';
+  h += '<div class="ibox">A coherent research design requires that your question, epistemology, theory, and method all speak the same language. This diagnostic tool checks for common misalignments.</div>';
+  h += '<div class="fg"><label>Your Research Question</label><textarea id="ck-rq" placeholder="Paste or type your research question"></textarea></div>';
+  h += '<div class="fg"><label>Epistemological Stance</label><select id="ck-epist"><option value="">-- Select --</option><option value="Positivist">Positivist</option><option value="Interpretivist">Interpretivist</option><option value="Critical">Critical</option><option value="Mixed">Mixed / Pragmatist</option></select></div>';
+  h += '<div class="fg"><label>Theory / Theoretical Tradition</label><select id="ck-theory"><option value="">-- Select --</option><option value="realism">Realism / Neorealism</option><option value="liberalism">Liberalism / Liberal Institutionalism</option><option value="rational">Rational Choice / Bargaining Theory</option><option value="constructivism">Constructivism</option><option value="english">English School</option><option value="marxism">Marxism / Historical Materialism</option><option value="feminism">Feminist IR</option><option value="postcolonial">Postcolonialism</option><option value="poststructural">Poststructuralism</option><option value="practice">Practice Theory</option><option value="green">Green Theory / Ecologism</option><option value="other">Other</option></select></div>';
+  h += '<div class="fg"><label>Primary Method</label><select id="ck-method"><option value="">-- Select --</option><option value="statistical">Statistical / Quantitative</option><option value="formal">Formal Modelling</option><option value="process">Process Tracing</option><option value="comparison">Structured-Focused Comparison</option><option value="qca">QCA</option><option value="discourse">Discourse Analysis</option><option value="ethnography">Ethnography</option><option value="content">Content Analysis</option><option value="historical">Comparative Historical Analysis</option><option value="narrative">Narrative Analysis</option><option value="genealogy">Genealogy / Foucauldian</option><option value="feminist_method">Feminist Methodology</option><option value="mixed_method">Mixed Methods / Nested</option></select></div>';
+  h += '<div class="fg"><label>Number of Cases</label><select id="ck-n"><option value="">-- Select --</option><option value="1">Single Case (N=1)</option><option value="few">Small-N (2-10)</option><option value="medium">Medium-N (10-50)</option><option value="large">Large-N (50+)</option></select></div>';
+  h += '<div style="margin-top:10px"><button class="btn btn-p" onclick="runChecker()">Check Alignment</button> <button class="btn btn-s" onclick="clearChecker()">Reset</button></div>';
+  h += '<div id="ck-results"></div>';
+  return h;
+}
+
+function runChecker() {
+  var epist = el("ck-epist").value;
+  var theory = el("ck-theory").value;
+  var method = el("ck-method").value;
+  var n = el("ck-n").value;
+  var rq = (el("ck-rq").value || "").trim();
+  if (!epist || !theory || !method) { alert("Please fill in epistemology, theory, and method."); return; }
+
+  var results = [];
+  var posT = ["realism","liberalism","rational"];
+  var intT = ["constructivism","english","practice"];
+  var critT = ["marxism","feminism","postcolonial","poststructural","green"];
+  var posM = ["statistical","formal","comparison","qca","process","content","mixed_method"];
+  var intM = ["discourse","ethnography","narrative","process","content","historical"];
+  var critM = ["discourse","genealogy","feminist_method","ethnography","narrative","historical"];
+
+  // Epistemology-Theory
+  if (epist === "Positivist" && critT.indexOf(theory) >= 0) {
+    results.push({t:"warn", m:"EPISTEMOLOGY - THEORY TENSION: You selected a positivist epistemology with a critical theory. Critical theories typically reject value-neutral inquiry. This can work if you operationalise the theory in a testable way, but be explicit about the tension."});
+  } else if (epist === "Critical" && posT.indexOf(theory) >= 0) {
+    results.push({t:"warn", m:"EPISTEMOLOGY - THEORY TENSION: You selected a critical epistemology with a mainstream/positivist theory. Consider whether you are critiquing the theory itself or applying a critical lens to its assumptions."});
+  } else if (epist === "Interpretivist" && theory === "rational") {
+    results.push({t:"warn", m:"EPISTEMOLOGY - THEORY TENSION: Rational choice theory assumes utility-maximising agents and is typically embedded in positivist epistemology. If you are studying how rational-choice discourses are deployed, that could work - but clarify your analytical move."});
+  } else {
+    results.push({t:"pass", m:"EPISTEMOLOGY - THEORY: Your epistemological stance and theoretical tradition appear coherent."});
+  }
+
+  // Epistemology-Method
+  var mOk = false;
+  if (epist === "Positivist" && posM.indexOf(method) >= 0) mOk = true;
+  if (epist === "Interpretivist" && intM.indexOf(method) >= 0) mOk = true;
+  if (epist === "Critical" && critM.indexOf(method) >= 0) mOk = true;
+  if (epist === "Mixed") mOk = true;
+  if (!mOk) {
+    var sug = "";
+    if (epist === "Positivist") sug = "Consider: statistical analysis, formal modelling, structured comparison, process tracing, or QCA.";
+    if (epist === "Interpretivist") sug = "Consider: discourse analysis, ethnography, interpretive process tracing, narrative analysis, or comparative historical analysis.";
+    if (epist === "Critical") sug = "Consider: critical discourse analysis, genealogy, feminist methodology, or reflexive ethnography.";
+    results.push({t:"warn", m:"EPISTEMOLOGY - METHOD TENSION: The method you chose is not typically associated with your epistemological stance. You will need to explicitly justify the combination. " + sug});
+  } else {
+    results.push({t:"pass", m:"EPISTEMOLOGY - METHOD: Your method is well-suited to your epistemological tradition."});
+  }
+
+  // N-size
+  if (n === "large" && ["discourse","ethnography","genealogy","feminist_method","narrative"].indexOf(method) >= 0) {
+    results.push({t:"warn", m:"N-SIZE - METHOD TENSION: You selected a large-N design with a method that typically works with small-N or single cases. Large-N variants exist (e.g., automated text analysis) but require a different approach. Be specific."});
+  } else if (n === "1" && ["statistical","formal","qca"].indexOf(method) >= 0) {
+    results.push({t:"fail", m:"N-SIZE - METHOD MISMATCH: Statistical analysis, formal modelling, and QCA require multiple cases. A single case study cannot support these methods. Consider process tracing or within-case analysis instead."});
+  } else if (n === "medium" && method === "qca") {
+    results.push({t:"pass", m:"N-SIZE - METHOD: Medium-N is the sweet spot for QCA. Good alignment."});
+  } else if (n) {
+    results.push({t:"pass", m:"N-SIZE - METHOD: Your case count and method appear compatible."});
+  }
+
+  // RQ keywords
+  if (rq) {
+    var rqL = rq.toLowerCase();
+    if (epist === "Positivist" && (rqL.indexOf("how do actors understand") >= 0 || rqL.indexOf("what meanings") >= 0)) {
+      results.push({t:"warn", m:"QUESTION - EPISTEMOLOGY NOTE: Your research question uses interpretivist language but you selected a positivist epistemology. Positivist questions typically ask about causes, effects, and conditions. Revisit either the question or the epistemological choice."});
+    }
+    if (epist === "Interpretivist" && (rqL.indexOf("cause") >= 0 || rqL.indexOf("what is the effect") >= 0)) {
+      results.push({t:"warn", m:"QUESTION - EPISTEMOLOGY NOTE: Your research question uses causal language but you selected an interpretivist epistemology. Interpretivists typically ask about meaning, constitution, and practice. Consider rephrasing or reconsidering your stance."});
+    }
+  }
+
+  // Render
+  var container = el("ck-results");
+  var html = '<div class="stitle" style="margin-top:16px">Diagnostic Results</div>';
+  var allPass = true;
+  for (var i = 0; i < results.length; i++) {
+    var r = results[i];
+    var cls = r.t === "pass" ? "cr-pass" : (r.t === "warn" ? "cr-warn" : "cr-fail");
+    var icon = r.t === "pass" ? "PASS" : (r.t === "warn" ? "WARNING" : "MISMATCH");
+    if (r.t !== "pass") allPass = false;
+    html += '<div class="cr ' + cls + '"><b>' + icon + ':</b> ' + r.m + '</div>';
+  }
+  if (allPass) {
+    html += '<div class="cr cr-pass" style="margin-top:10px"><b>Overall:</b> Your research design elements appear well-aligned. Proceed with confidence - but always discuss coherence with your supervisor.</div>';
+  } else {
+    html += '<div class="ibox" style="margin-top:10px"><b>Next steps:</b> Review the flagged tensions. Alignment issues are common and fixable - the point is to be explicit about your choices. Discuss with your supervisor and consult the Reading Navigator tab.</div>';
+  }
+  container.innerHTML = html;
+}
+
+function clearChecker() {
+  var ids = ["ck-rq","ck-epist","ck-theory","ck-method","ck-n"];
+  for (var i = 0; i < ids.length; i++) {
+    var e = el(ids[i]);
+    if (e.tagName === "SELECT") e.selectedIndex = 0;
+    else e.value = "";
+  }
+  el("ck-results").innerHTML = "";
+}
+
+/* ----- TAB 8: READINGS ----- */
+function tabReadings() {
+  var h = '<div class="stitle">Reading Navigator</div>';
+  h += '<div class="ibox">A curated library of foundational methods texts and exemplary IR works. Use search and filters below.</div>';
+  h += '<input type="text" class="srch" id="readSearch" placeholder="Search by title, author, or keyword..." oninput="renderReadings()">';
+  h += '<div style="margin-bottom:12px">';
+  var filters = ["All","Positivist","Interpretivist","Critical","Mixed","General"];
+  for (var i = 0; i < filters.length; i++) {
+    h += '<button class="btn btn-s" style="font-size:.8em" onclick="currentTradFilter=\'' + filters[i] + '\';renderReadings()">' + filters[i] + '</button> ';
+  }
+  h += '</div>';
+  h += '<div id="readList"></div>';
+  return h;
+}
+
+function renderReadings() {
+  var search = (el("readSearch") ? el("readSearch").value : "").toLowerCase();
+  var container = el("readList");
+  if (!container) return;
+  var filtered = [];
+  for (var i = 0; i < READINGS.length; i++) {
+    var r = READINGS[i];
+    if (currentTradFilter !== "All" && currentTradFilter !== "all" && r.tradition !== currentTradFilter) continue;
+    if (search && (r.title + " " + r.author + " " + r.desc + " " + r.tradition + " " + r.type).toLowerCase().indexOf(search) < 0) continue;
+    filtered.push(r);
+  }
+  if (filtered.length === 0) {
+    container.innerHTML = '<p style="color:#94a3b8;padding:20px;text-align:center">No readings match your search.</p>';
+    return;
+  }
+  var html = "";
+  for (var i = 0; i < filtered.length; i++) {
+    var r = filtered[i];
+    var tcls = "";
+    if (r.tradition === "Positivist") tcls = "tag-pos";
+    else if (r.tradition === "Interpretivist") tcls = "tag-int";
+    else if (r.tradition === "Critical") tcls = "tag-crit";
+    else if (r.tradition === "Mixed") tcls = "tag-mixed";
+    html += '<div class="rcard">';
+    html += '<h4>' + r.title + ' (' + r.year + ')</h4>';
+    html += '<p><b>' + r.author + '</b></p>';
+    html += '<p>' + r.desc + '</p>';
+    html += '<span class="tag ' + tcls + '">' + r.tradition + '</span> <span class="tag tag-method">' + r.type + '</span>';
+    html += '</div>';
+  }
+  container.innerHTML = html;
+}
+
+/* ===== START ===== */
+buildApp();
+</script>
+</body>
+</html>
 
